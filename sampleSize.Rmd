@@ -1,0 +1,50 @@
+---
+title: "LMWH in Renal Insufficiency"
+subtitle: "Sample Size Calculations"
+output: pdf_document
+date: '`r format(Sys.Date(), "%B %d, %Y")`'
+---
+
+## Sample Size Calculations
+
+### Potential Assumptions
+Using the results from: DeCarolis, et al. Arch Intern Med. 2012;172:1713-1718
+
+* CrCl >80 mL/min: 5.7%
+* CrCl 30-50 mL/min: 22.0%
+
+```{r}
+power.prop.test(p1=0.057, p2=0.22, power=0.8, alternative="two.sided")
+```
+
+Using results from meta-analysis: Hoffmann, et al. Eur J Clin Pharmacol. 2012;68:757–765
+
+* CrCl >60 mL/min: 
+* CrCl <60 mL/min:
+
+__Note:__ This included enoxaparin use in ACS
+
+```{r}
+power.prop.test(p1=0.036, p2=0.065, power=0.8, alternative="two.sided")
+```
+
+Using the risk of bleeding from package insert (2%) and assuming a 5%, 10%, or 15% difference:
+
+```{r}
+power.prop.test(p1=0.02, p2=0.07, power=0.8, alternative="two.sided")
+power.prop.test(p1=0.02, p2=0.12, power=0.8, alternative="two.sided")
+power.prop.test(p1=0.02, p2=0.17, power=0.8, alternative="two.sided")
+```
+
+### Recommended Assumption
+
+Major bleeding with enoxaparin has been reported at 2 - 5.7%.
+
+Major bleeding with a CrCl <60 mL/min or between 30-50 mL/min has been reported at 6.5% and 22.0%, respectively.
+
+Using the mean of these two values (`r mean(c(0.02, 0.057))`) and (`r mean(c(0.065, 0.22))`) gives us:
+
+```{r}
+power.prop.test(p1=mean(c(0.02, 0.057)), p2=mean(c(0.065, 0.22)), power=0.8, alternative="two.sided")
+```
+
