@@ -59,20 +59,6 @@ tmp.count.doses <- raw.excl.meds %>%
     filter(count >= 3,
            difftime(last, first, units = "hours") >= 72)
 
-enox_course <- function(diff) {
-#     sapply(diff, function(x)
-#         if (is.na(x)) {
-#             course <- 1
-#             course
-#         } else if (x <= 28) {
-#             course
-#         } else {
-#             course <- course + 1
-#             course
-#         }
-#     )
-}
-
 # find patients who had gaps in enoxaparin therapy (> 30 hours between doses)
 tmp.courses <- raw.excl.meds %>%
     filter(pie.id %in% tmp.count.doses$pie.id,
