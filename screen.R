@@ -11,8 +11,10 @@ pts.screen <- list.files("Screen", pattern="^Enoxaparin", full.names=TRUE) %>%
     transmute(pie.id = PowerInsight.Encounter.Id) %>%
     distinct
 
+pts.screen <- pts.screen$pie.id
+
 # split the patients up into groups of 1000
-edw.pie <- split(pts.screen$pie.id, ceiling(seq_along(pts.screen$pie.id)/500))
+edw.pie <- split(pts.screen, ceiling(seq_along(pts.screen)/500))
 # combine the id's in each group into a string, separated by semi-colon
 edw.pie <- lapply(edw.pie, str_c, collapse=";")
 
