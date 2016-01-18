@@ -9,6 +9,7 @@ exclude.dir <- "Exclusion"
 # compress data files
 gzip_files(exclude.dir)
 
+# raw data ---------------------------------------------------------------------
 # read in all data files needed to evaluate for exclusion
 raw.excl.demograph <- list.files(exclude.dir, pattern="^demographics", full.names=TRUE) %>%
     lapply(read.csv, colClasses="character") %>%
@@ -93,11 +94,11 @@ tmp.enox.courses <- raw.excl.enox %>%
            course.count = cumsum(course.start)) %>%
     ungroup %>%
     group_by(pie.id, course.count) %>%
-    summarize(first.dose = first(event.datetime),
-              last.dose = last(event.datetime),
+    summarize(first.datetime = first(event.datetime),
+              last.datetime = last(event.datetime),
               end.datetime = end_eval(event.datetime),
               dose.count = n()) %>%
-    mutate(duration = difftime(last.dose, first.dose, units = "hours")) %>%
+    mutate(duration = difftime(last.datetime, first.datetime, units = "hours")) %>%
     ungroup %>%
     group_by(pie.id) %>%
     filter(course.count == 1,
@@ -106,8 +107,25 @@ tmp.enox.courses <- raw.excl.enox %>%
     
 pts.include <- tmp.enox.courses$pie.id
     
-# exclusion: pregnancy, weight < 45 or > 150, >1 CrCl <30 during enoxaparin,
+# exclusion --------------------------------------------------------------------
+# criteria: pregnancy, weight < 45 or > 150, >1 CrCl <30 during enoxaparin,
 # coadmin of other anticoags except warfarin, enoxaparin dose change by >10%
+
+# find patients with >10% dose change
+tmp.dose.change <- raw.excl.enox %>%
+    inner_join(tmp.enox.courses, by = "pie.id") %>%
+    filter(dose > 40,
+           event.datetime >= first.datetime,
+           event.datetime <= end.datetime) %>%
+    group_by(pie.id) %>%
+    summarize(first.dose = first(dose),
+              last.dose = last(dose)) %>%
+    mutate(dose.diff = last.dose / first.dose) %>%
+    filter(dose.diff >= 0.9 & dose.diff <= 1.10) 
+
+excl.dose <- pts.include[! pts.include %in% tmp.dose.change$pie.id]
+
+pts.include <- pts.include[! pts.include %in% excl.dose]
 
 # find any patients with a weight < 45 kg or > 150 kg
 tmp.weight <- raw.excl.weight %>%
@@ -117,7 +135,7 @@ tmp.weight <- raw.excl.weight %>%
     group_by(pie.id) %>%
     arrange(event.datetime) %>%
     left_join(tmp.enox.courses, by = "pie.id") %>%
-    filter(event.datetime <= first.dose + hours(2)) %>%
+    filter(event.datetime <= first.datetime + hours(2)) %>%
     summarize(weight = last(result)) %>%
     filter(weight > 45 & weight < 150)
 
@@ -136,7 +154,7 @@ tmp.height <- raw.excl.weight %>%
     group_by(pie.id) %>%
     arrange(event.datetime) %>%
     left_join(tmp.enox.courses, by = "pie.id") %>%
-    filter(event.datetime <= first.dose + hours(2)) %>%
+    filter(event.datetime <= first.datetime + hours(2)) %>%
     summarize(height = last(result))
 
 tmp.crcl <- raw.excl.labs %>%
@@ -147,7 +165,7 @@ tmp.crcl <- raw.excl.labs %>%
     group_by(pie.id) %>%
     arrange(event.datetime) %>%
     left_join(tmp.enox.courses, by = "pie.id") %>%
-    filter(event.datetime >= first.dose - days(2),
+    filter(event.datetime >= first.datetime - days(2),
            event.datetime <= end.datetime) %>%
     select(pie.id:result) %>%
     inner_join(select(raw.excl.demograph, pie.id, age, sex), by = "pie.id") %>%
@@ -167,3 +185,62 @@ tmp.crcl <- raw.excl.labs %>%
 excl.crcl <- pts.include[! pts.include %in% tmp.crcl$pie.id]
     
 pts.include <- pts.include[! pts.include %in% excl.crcl]
+
+# remove any pregnant patients
+tmp.labs.preg <- raw.excl.labs %>%
+    filter(pie.id %in% pts.include,
+           event == "S Preg" | event == "U Preg",
+           result == "Positive") %>%
+    select(pie.id) %>%
+    distinct
+
+excl.preg <- tmp.labs.preg$pie.id
+
+ref.preg.codes <- read.csv("Lookup/exclusion_codes.csv", colClasses = "character")
+
+ref.preg.icd9 <- icd9_lookup(ref.preg.codes)
+
+tmp.diag.preg <- raw.excl.diagnosis %>%
+    filter(pie.id %in% pts.include,
+           diag.code %in% ref.preg.icd9$icd9.code) %>%
+    select(pie.id) %>%
+    distinct
+
+excl.preg <- c(excl.preg, tmp.diag.preg$pie.id)
+
+pts.include <- pts.include[! pts.include %in% excl.preg]
+
+# find patients receiving other anticoagulants while on enoxaparin
+tmp.anticoag <- raw.excl.anticoag %>%
+    filter(pie.id %in% pts.include,
+           event != "warfarin") %>%
+    inner_join(tmp.enox.courses, by = "pie.id") %>%
+    filter(event.datetime > first.datetime + hours(4),
+           event.datetime < end.datetime) %>%
+    select(pie.id) %>%
+    distinct
+
+excl.anticoag <- tmp.anticoag$pie.id
+
+pts.include <- pts.include[! pts.include %in% excl.anticoag]
+
+# make groups ------------------------------------------------------------------
+
+# get age and indication for included patients
+tmp.demograph <- raw.excl.demograph %>%
+    filter(pie.id %in% pts.include)
+
+# find moderate renal impairment patients
+tmp.crcl <- tmp.crcl %>%
+    filter(pie.id %in% pts.include)
+
+group.moderate <- tmp.crcl %>%
+    filter(num.crcl.30_60 > 1)
+
+group.moderate <- group.moderate$pie.id
+
+group.normal <- tmp.crcl %>%
+    filter(num.crcl.30_60 <= 1)
+
+group.normal <- group.normal$pie.id
+
