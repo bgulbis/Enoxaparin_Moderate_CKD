@@ -109,26 +109,19 @@ pts.include <- tmp.enox.courses$pie.id
 # exclusion: pregnancy, weight < 45 or > 150, >1 CrCl <30 during enoxaparin,
 # coadmin of other anticoags except warfarin, enoxaparin dose change by >10%
 
-# find any patients without a weight
+# find any patients with a weight < 45 kg or > 150 kg
 tmp.weight <- raw.excl.weight %>%
     filter(pie.id %in% pts.include,
            event == "Weight",
            unit == "kg") %>%
     group_by(pie.id) %>%
-    arrange(event.datetime)
-
-excl.weight <- pts.include[! pts.include %in% tmp.weight$pie.id]
-    
-# find any patients with a weight < 45 kg or > 150 kg
-tmp.weight <- tmp.weight %>%
+    arrange(event.datetime) %>%
     left_join(tmp.enox.courses, by = "pie.id") %>%
     filter(event.datetime <= first.dose + hours(2)) %>%
-    summarize(weight = last(result))
+    summarize(weight = last(result)) %>%
+    filter(weight > 45 & weight < 150)
 
-tmp.excl.weight <- tmp.weight %>%
-    filter(weight < 45 | weight > 150)
-
-excl.weight <- c(excl.weight, tmp.excl.weight$pie.id)
+excl.weight <- pts.include[! pts.include %in% tmp.weight$pie.id]
 
 pts.include <- pts.include[! pts.include %in% excl.weight]
 
@@ -157,13 +150,20 @@ tmp.crcl <- raw.excl.labs %>%
     filter(event.datetime >= first.dose - days(2),
            event.datetime <= end.datetime) %>%
     select(pie.id:result) %>%
-    # summarize(scr = last(result)) %>%
     inner_join(select(raw.excl.demograph, pie.id, age, sex), by = "pie.id") %>%
     inner_join(tmp.weight, by = "pie.id") %>%
     inner_join(tmp.height, by = "pie.id") %>%
     rowwise %>%
-    mutate(crcl = calculate_crcl(age, as.character(sex), result, weight, height))
-
-# remove any patients without a SCr during the appropriate time frame
-excl.crcl <- pts.include[! pts.include %in% tmp.scr$pie.id]
+    mutate(crcl = calculate_crcl(age, as.character(sex), result, weight, height),
+           crcl.lt30 = ifelse(crcl < 30, TRUE, FALSE),
+           crcl.30_60 = ifelse(crcl >= 30 & crcl <= 60, TRUE, FALSE)) %>%
+    ungroup %>%
+    group_by(pie.id) %>%
+    summarize(num.crcl.lt30 = sum(crcl.lt30),
+              num.crcl.30_60 = sum(crcl.30_60)) %>%
+    filter(num.crcl.lt30 <= 1)
     
+# remove any patients crcl < 30
+excl.crcl <- pts.include[! pts.include %in% tmp.crcl$pie.id]
+    
+pts.include <- pts.include[! pts.include %in% excl.crcl]
