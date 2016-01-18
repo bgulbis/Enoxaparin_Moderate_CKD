@@ -69,6 +69,13 @@ raw.excl.enox <- list.files(exclude.dir, pattern="^enoxaparin", full.names=TRUE)
               route = factor(Route.of.Administration...Short, exclude = ""),
               frequency = factor(Parent.Order.Frequency.Description)) 
 
+raw.excl.warf <- list.files(exclude.dir, pattern="^warfarin", full.names=TRUE) %>%
+    lapply(read.csv, colClasses="character") %>%
+    bind_rows %>%
+    transmute(pie.id = PowerInsight.Encounter.Id,
+              event.datetime = mdy_hms(Clinical.Event.End.Date.Time),
+              indication = Clinical.Event.Result)
+
 # inclusion --------------------------------------------------------------------
 # evaluate for inclusion criteria: at least 3 doses of enoxaparin over 72 hours
 end_eval <- function(dt) {
@@ -235,6 +242,7 @@ ref.indications.codes <- read.csv("Lookup/anticoag_indications.csv", colClasses 
 
 ref.indications.icd9 <- icd9_lookup(ref.indications.codes)
 
+# get indication based on diagnosis codes
 tmp.indications <- raw.excl.diagnosis %>%
     filter(pie.id %in% pts.include) %>%
     inner_join(ref.indications.icd9, by = c("diag.code" = "icd9.code")) %>%
@@ -245,26 +253,32 @@ tmp.indications <- raw.excl.diagnosis %>%
     distinct %>%
     spread(disease.state, value, fill = FALSE, drop = FALSE)
 
-# ** check diagnosis codes for included patients not in tmp.indications
-tmp.nodiag <- pts.include[! pts.include %in% tmp.indications$pie.id]
+# get indication based on warfarin indication data
+tmp.warf.ind <- raw.excl.warf %>%
+    filter(pie.id %in% pts.include) %>%
+    group_by(pie.id) %>%
+    arrange(event.datetime) %>%
+    summarize(indication = last(indication)) %>%
+    mutate(afib = str_detect(indication, "Atrial fibrillation"),
+           dvt = str_detect(indication, "Deep vein thrombosis"),
+           pe = str_detect(indication, "Pulmonary embolism"),
+           valve = str_detect(indication, "Heart valve"),
+           other = str_detect(indication, "Other"))
 
-tmp.diag <- raw.excl.diagnosis %>%
-    filter(pie.id %in% tmp.nodiag) %>%
-    select(diag.code) %>%
-    distinct
+# join both sets of indications together and merge
+tmp.ind.join <- full_join(tmp.indications, tmp.warf.ind, by = "pie.id") %>% 
+    group_by(pie.id) %>%
+    mutate(afib = ifelse(sum(c(afib.x, afib.y), na.rm = TRUE) >= 1, TRUE, FALSE),
+           dvt = ifelse(sum(c(dvt.x, dvt.y), na.rm = TRUE) >= 1, TRUE, FALSE),
+           pe = ifelse(sum(c(pe.x, pe.y), na.rm = TRUE) >= 1, TRUE, FALSE),
+           valve = ifelse(sum(c(valve.x, valve.y), na.rm = TRUE) >= 1, TRUE, FALSE),
+           other = ifelse(sum(c(other.x, other.y), na.rm = TRUE) >= 1, TRUE, FALSE)) %>%
+    select(pie.id, afib:other)
 
-test <- icd9_description(tmp.diag$diag.code)
+excl.indication <- pts.include[! pts.include %in% tmp.ind.join$pie.id]
 
-
-# ** create an other indication??
-# ** see how many patients don't have afib, dvt/pe, or valve indication
-
-tmp.ind <- tmp.indications %>%
-    filter(atrial.fib == TRUE | dvt == TRUE | pe == TRUE | valve.disease == TRUE)
-
-tmp.stroke <- tmp.indications %>%
-    filter(!(pie.id %in% tmp.ind$pie.id), 
-           stroke == TRUE)
+# remove any patients where the indication is unknown
+pts.include <- pts.include[!pts.include %in% excl.indication]
 
 # find moderate renal impairment patients
 tmp.crcl <- tmp.crcl %>%
