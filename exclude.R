@@ -236,8 +236,7 @@ ref.indications.codes <- read.csv("Lookup/anticoag_indications.csv", colClasses 
 ref.indications.icd9 <- icd9_lookup(ref.indications.codes)
 
 tmp.indications <- raw.excl.diagnosis %>%
-    filter(pie.id %in% pts.include,
-           diag.type == "Final") %>%
+    filter(pie.id %in% pts.include) %>%
     inner_join(ref.indications.icd9, by = c("diag.code" = "icd9.code")) %>%
     mutate(disease.state = factor(disease.state),
            value = TRUE) %>%
@@ -247,8 +246,25 @@ tmp.indications <- raw.excl.diagnosis %>%
     spread(disease.state, value, fill = FALSE, drop = FALSE)
 
 # ** check diagnosis codes for included patients not in tmp.indications
+tmp.nodiag <- pts.include[! pts.include %in% tmp.indications$pie.id]
+
+tmp.diag <- raw.excl.diagnosis %>%
+    filter(pie.id %in% tmp.nodiag) %>%
+    select(diag.code) %>%
+    distinct
+
+test <- icd9_description(tmp.diag$diag.code)
+
+
 # ** create an other indication??
 # ** see how many patients don't have afib, dvt/pe, or valve indication
+
+tmp.ind <- tmp.indications %>%
+    filter(atrial.fib == TRUE | dvt == TRUE | pe == TRUE | valve.disease == TRUE)
+
+tmp.stroke <- tmp.indications %>%
+    filter(!(pie.id %in% tmp.ind$pie.id), 
+           stroke == TRUE)
 
 # find moderate renal impairment patients
 tmp.crcl <- tmp.crcl %>%
