@@ -69,6 +69,7 @@ raw.excl.enox <- list.files(exclude.dir, pattern="^enoxaparin", full.names=TRUE)
               route = factor(Route.of.Administration...Short, exclude = ""),
               frequency = factor(Parent.Order.Frequency.Description)) 
 
+# inclusion --------------------------------------------------------------------
 # evaluate for inclusion criteria: at least 3 doses of enoxaparin over 72 hours
 end_eval <- function(dt) {
     max.stop <- first(dt) + days(5)
@@ -230,6 +231,25 @@ pts.include <- pts.include[! pts.include %in% excl.anticoag]
 tmp.demograph <- raw.excl.demograph %>%
     filter(pie.id %in% pts.include)
 
+ref.indications.codes <- read.csv("Lookup/anticoag_indications.csv", colClasses = "character")
+
+ref.indications.icd9 <- icd9_lookup(ref.indications.codes)
+
+tmp.indications <- raw.excl.diagnosis %>%
+    filter(pie.id %in% pts.include,
+           diag.type == "Final") %>%
+    inner_join(ref.indications.icd9, by = c("diag.code" = "icd9.code")) %>%
+    mutate(disease.state = factor(disease.state),
+           value = TRUE) %>%
+    select(pie.id, disease.state, value) %>%
+    group_by(pie.id, disease.state) %>%
+    distinct %>%
+    spread(disease.state, value, fill = FALSE, drop = FALSE)
+
+# ** check diagnosis codes for included patients not in tmp.indications
+# ** create an other indication??
+# ** see how many patients don't have afib, dvt/pe, or valve indication
+
 # find moderate renal impairment patients
 tmp.crcl <- tmp.crcl %>%
     filter(pie.id %in% pts.include)
@@ -243,4 +263,6 @@ group.normal <- tmp.crcl %>%
     filter(num.crcl.30_60 <= 1)
 
 group.normal <- group.normal$pie.id
+
+# ** match based on age and indication
 
