@@ -90,7 +90,7 @@ end_eval <- function(dt) {
 
 # find those with >= 3 doses and >= 72 hours of treatment
 tmp.enox.courses <- raw.excl.enox %>%
-    filter(dose > 40) %>%
+    select(-rate, -rate.unit, -route) %>%
     group_by(pie.id) %>%
     arrange(event.datetime) %>%
     mutate(freq = ifelse(str_detect(frequency, regex("(q12h|bid)", ignore_case = TRUE)) == TRUE, "twice", 
@@ -100,6 +100,7 @@ tmp.enox.courses <- raw.excl.enox %>%
                                      (freq == "twice" & hours.prev.dose > 36) | 
                                      hours.prev.dose > 48, TRUE, FALSE),
            course.count = cumsum(course.start)) %>%
+    filter(dose > 40) %>%
     ungroup %>%
     group_by(pie.id, course.count) %>%
     summarize(first.datetime = first(event.datetime),
@@ -109,9 +110,16 @@ tmp.enox.courses <- raw.excl.enox %>%
     mutate(duration = difftime(last.datetime, first.datetime, units = "hours")) %>%
     ungroup %>%
     group_by(pie.id) %>%
-    filter(course.count == 1,
-           duration >= 72,
-           dose.count >= 3)
+    # filter(course.count == 1, duration >= 72, dose.count >= 3)
+    filter(duration >= 72,
+           dose.count >= 3) %>%
+    arrange(course.count) %>%
+    summarize(course.count = first(course.count),
+              first.datetime = first(first.datetime),
+              last.datetime = first(last.datetime),
+              end.datetime = first(end.datetime),
+              dose.count = first(dose.count),
+              duration = first(duration))
     
 pts.include <- tmp.enox.courses$pie.id
     
@@ -179,6 +187,7 @@ tmp.crcl <- raw.excl.labs %>%
     inner_join(select(raw.excl.demograph, pie.id, age, sex), by = "pie.id") %>%
     inner_join(tmp.weight, by = "pie.id") %>%
     inner_join(tmp.height, by = "pie.id") %>%
+    filter(!is.na(sex)) %>%
     rowwise %>%
     mutate(crcl = calculate_crcl(age, as.character(sex), result, weight, height),
            crcl.lt30 = ifelse(crcl < 30, TRUE, FALSE),
