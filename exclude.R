@@ -289,6 +289,32 @@ excl.indication <- pts.include[! pts.include %in% tmp.ind.join$pie.id]
 # remove any patients where the indication is unknown
 pts.include <- pts.include[!pts.include %in% excl.indication]
 
+# check for any readmits
+
+edw.pie.include <- str_c(pts.include, collapse = ";")
+print(edw.pie.include)
+
+raw.readmits <- list.files(exclude.dir, pattern="^readmits", full.names=TRUE) %>%
+    lapply(read.csv, colClasses="character") %>%
+    bind_rows %>%
+    transmute(pie.id = PowerInsight.Encounter.Id,
+              person.id = Person.ID)
+
+tmp.readmits <- raw.readmits %>%
+    group_by(person.id) %>%
+    summarize(count = n()) %>%
+    # filter(count > 1) %>%
+    inner_join(raw.readmits, by = "person.id") %>%
+    # inner_join(tmp.demograph, by = "pie.id") %>%
+    inner_join(tmp.enox.courses, by = "pie.id") %>%
+    group_by(person.id) %>%
+    summarize(pie.id = first(pie.id))
+
+excl.readmit <- pts.include[! pts.include %in% tmp.readmits$pie.id]
+
+# remove any patients where the indication is unknown
+pts.include <- pts.include[!pts.include %in% excl.readmit]
+
 # find moderate renal impairment patients
 tmp.crcl <- tmp.crcl %>%
     filter(pie.id %in% pts.include)
@@ -303,5 +329,24 @@ group.normal <- tmp.crcl %>%
 
 group.normal <- group.normal$pie.id
 
-# ** match based on age and indication
 
+# matching ---------------------------------------------------------------------
+# match based on age and indication
+
+tmp.pts.mod <- tmp.demograph %>%
+    filter(pie.id %in% group.moderate) %>%
+    inner_join(tmp.ind.join, by = "pie.id") %>%
+    mutate(group = "moderate",
+           age.gt60 = ifelse(age > 60, TRUE, FALSE)) 
+
+tmp.pts.normal <- tmp.demograph %>%
+    filter(pie.id %in% group.normal) %>%
+    inner_join(tmp.ind.join, by = "pie.id") %>%
+    mutate(group = "normal",
+           age.gt60 = ifelse(age > 60, TRUE, FALSE)) 
+
+tmp.sample <- sample_n(tmp.pts.normal[tmp.pts.normal$age.gt60 == FALSE, ], size = nrow(tmp.pts.mod[tmp.pts.mod$age.gt60 == FALSE, ])) %>%
+        bind_rows(sample_n(tmp.pts.normal[tmp.pts.normal$age.gt60 == TRUE, ], size = nrow(tmp.pts.mod[tmp.pts.mod$age.gt60 == TRUE, ])))
+
+data.patients <- bind_rows(tmp.pts.mod, tmp.sample) %>%
+    mutate(group = factor(group))
