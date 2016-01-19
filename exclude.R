@@ -118,9 +118,8 @@ tmp.enox.courses <- raw.excl.enox %>%
     mutate(duration = difftime(last.datetime, first.datetime, units = "hours")) %>%
     ungroup %>%
     group_by(pie.id) %>%
-    # filter(course.count == 1, duration >= 72, dose.count >= 3)
-    filter(duration >= 72,
-           dose.count >= 3) %>%
+    filter(course.count == 1, duration >= 72, dose.count >= 3) %>%
+    # filter(duration >= 72, dose.count >= 3) %>%
     arrange(course.count) %>%
     summarize(course.count = first(course.count),
               first.datetime = first(first.datetime),
