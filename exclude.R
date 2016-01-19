@@ -15,6 +15,7 @@ raw.excl.demograph <- list.files(exclude.dir, pattern="^demographics", full.name
     lapply(read.csv, colClasses="character") %>%
     bind_rows %>%
     transmute(pie.id = PowerInsight.Encounter.Id,
+              person.id = Person.ID,
               age = as.numeric(Age..Years..Visit.),
               sex = factor(Sex, exclude = c("", "Unknown")),
               race = factor(Race, exclude = c("", "Unknown")))
@@ -75,6 +76,13 @@ raw.excl.warf <- list.files(exclude.dir, pattern="^warfarin", full.names=TRUE) %
     transmute(pie.id = PowerInsight.Encounter.Id,
               event.datetime = mdy_hms(Clinical.Event.End.Date.Time),
               indication = Clinical.Event.Result)
+
+raw.excl.procedure <- list.files(exclude.dir, pattern="^procedure", full.names=TRUE) %>%
+    lapply(read.csv, colClasses="character") %>%
+    bind_rows %>%
+    transmute(pie.id = PowerInsight.Encounter.Id,
+              procedure.date = mdy_hms(Procedure.Date.and.Time),
+              procedure.code = ICD9.Procedure.Code)
 
 # inclusion --------------------------------------------------------------------
 # evaluate for inclusion criteria: at least 3 doses of enoxaparin over 72 hours
@@ -291,20 +299,20 @@ pts.include <- pts.include[!pts.include %in% excl.indication]
 
 # check for any readmits
 
-edw.pie.include <- str_c(pts.include, collapse = ";")
-print(edw.pie.include)
+# edw.pie.include <- str_c(pts.include, collapse = ";")
+# print(edw.pie.include)
 
-raw.readmits <- list.files(exclude.dir, pattern="^readmits", full.names=TRUE) %>%
-    lapply(read.csv, colClasses="character") %>%
-    bind_rows %>%
-    transmute(pie.id = PowerInsight.Encounter.Id,
-              person.id = Person.ID)
+# raw.readmits <- list.files(exclude.dir, pattern="^readmits", full.names=TRUE) %>%
+#     lapply(read.csv, colClasses="character") %>%
+#     bind_rows %>%
+#     transmute(pie.id = PowerInsight.Encounter.Id,
+#               person.id = Person.ID)
 
-tmp.readmits <- raw.readmits %>%
+tmp.readmits <- tmp.demograph %>%
     group_by(person.id) %>%
     summarize(count = n()) %>%
     # filter(count > 1) %>%
-    inner_join(raw.readmits, by = "person.id") %>%
+    inner_join(tmp.demograph, by = "person.id") %>%
     # inner_join(tmp.demograph, by = "pie.id") %>%
     inner_join(tmp.enox.courses, by = "pie.id") %>%
     group_by(person.id) %>%
