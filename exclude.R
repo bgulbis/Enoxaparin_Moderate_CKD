@@ -101,7 +101,11 @@ tmp.enox.courses <- raw.excl.enox %>%
     select(-rate, -rate.unit, -route) %>%
     group_by(pie.id) %>%
     arrange(event.datetime) %>%
-    mutate(freq = ifelse(str_detect(frequency, regex("(q12h|bid)", ignore_case = TRUE)) == TRUE, "twice", 
+    mutate(frequency = as.character(frequency),
+           frequency = ifelse(frequency != "Not Defined", frequency, 
+                              ifelse(!is.na(lead(frequency)), lead(frequency), 
+                                     ifelse(!is.na(lag(frequency)), lag(frequency), frequency))),
+           freq = ifelse(str_detect(frequency, regex("(q12h|bid)", ignore_case = TRUE)) == TRUE, "twice", 
                          ifelse(str_detect(frequency, regex("(q24h|daily)", ignore_case = TRUE)) == TRUE, "once", "")),
            hours.prev.dose = difftime(event.datetime, lag(event.datetime), units = "hours"),
            course.start = ifelse(is.na(hours.prev.dose) | 
@@ -114,7 +118,8 @@ tmp.enox.courses <- raw.excl.enox %>%
     summarize(first.datetime = first(event.datetime),
               last.datetime = last(event.datetime),
               end.datetime = end_eval(event.datetime),
-              dose.count = n()) %>%
+              dose.count = n(),
+              freq = first(freq)) %>%
     mutate(duration = difftime(last.datetime, first.datetime, units = "hours")) %>%
     ungroup %>%
     group_by(pie.id) %>%
@@ -126,7 +131,8 @@ tmp.enox.courses <- raw.excl.enox %>%
               last.datetime = first(last.datetime),
               end.datetime = first(end.datetime),
               dose.count = first(dose.count),
-              duration = first(duration))
+              duration = first(duration),
+              freq = first(freq))
     
 pts.include <- tmp.enox.courses$pie.id
     
@@ -134,7 +140,7 @@ pts.include <- tmp.enox.courses$pie.id
 # criteria: pregnancy, weight < 45 or > 150, >1 CrCl <30 during enoxaparin,
 # coadmin of other anticoags except warfarin, enoxaparin dose change by >10%
 
-# find patients with >10% dose change
+# find patients with >10% dose change for q12h, >15% for q24h
 tmp.dose.change <- raw.excl.enox %>%
     inner_join(tmp.enox.courses, by = "pie.id") %>%
     filter(dose > 40,
@@ -142,9 +148,11 @@ tmp.dose.change <- raw.excl.enox %>%
            event.datetime <= end.datetime) %>%
     group_by(pie.id) %>%
     summarize(first.dose = first(dose),
-              last.dose = last(dose)) %>%
+              last.dose = last(dose),
+              freq = first(freq)) %>%
     mutate(dose.diff = last.dose / first.dose) %>%
-    filter(dose.diff >= 0.9 & dose.diff <= 1.10) 
+    filter((freq == "once" & dose.diff >= 0.85 & dose.diff <= 1.15) | 
+               (dose.diff >= 0.9 & dose.diff <= 1.10)) 
 
 excl.dose <- pts.include[! pts.include %in% tmp.dose.change$pie.id]
 
@@ -344,13 +352,23 @@ tmp.pts.mod <- tmp.demograph %>%
     filter(pie.id %in% group.moderate) %>%
     inner_join(tmp.ind.join, by = "pie.id") %>%
     mutate(group = "moderate",
-           age.gt60 = ifelse(age > 60, TRUE, FALSE)) 
+           age.gt60 = ifelse(age > 60, TRUE, FALSE),
+           vte = ifelse(dvt == TRUE | pe == TRUE, TRUE, FALSE)) 
 
 tmp.pts.normal <- tmp.demograph %>%
     filter(pie.id %in% group.normal) %>%
     inner_join(tmp.ind.join, by = "pie.id") %>%
     mutate(group = "normal",
-           age.gt60 = ifelse(age > 60, TRUE, FALSE)) 
+           age.gt60 = ifelse(age > 60, TRUE, FALSE),
+           vte = ifelse(dvt == TRUE | pe == TRUE, TRUE, FALSE))  
+
+# vte / no vte; age <= 60 / age > 60
+tmp.mod.young.novte <- filter(tmp.pts.mod, age.gt60 == FALSE, vte == FALSE)
+tmp.mod.old.novte <- filter(tmp.pts.mod, age.gt60 == TRUE, vte == FALSE)
+tmp.mod.young.vte <- filter(tmp.pts.mod, age.gt60 == FALSE, vte == TRUE)
+tmp.mod.old.vte <- filter(tmp.pts.mod, age.gt60 == TRUE, vte == TRUE)
+
+
 
 tmp.sample <- sample_n(tmp.pts.normal[tmp.pts.normal$age.gt60 == FALSE, ], size = nrow(tmp.pts.mod[tmp.pts.mod$age.gt60 == FALSE, ])) %>%
         bind_rows(sample_n(tmp.pts.normal[tmp.pts.normal$age.gt60 == TRUE, ], size = nrow(tmp.pts.mod[tmp.pts.mod$age.gt60 == TRUE, ])))
