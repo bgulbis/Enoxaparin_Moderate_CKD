@@ -368,6 +368,10 @@ tmp.mod.old.novte <- filter(tmp.pts.mod, age.gt60 == TRUE, vte == FALSE)
 tmp.mod.young.vte <- filter(tmp.pts.mod, age.gt60 == FALSE, vte == TRUE)
 tmp.mod.old.vte <- filter(tmp.pts.mod, age.gt60 == TRUE, vte == TRUE)
 
+tmp.norm.young.novte <- filter(tmp.pts.normal, age.gt60 == FALSE, vte == FALSE)
+tmp.norm.old.novte <- filter(tmp.pts.normal, age.gt60 == TRUE, vte == FALSE)
+tmp.norm.young.vte <- filter(tmp.pts.normal, age.gt60 == FALSE, vte == TRUE)
+tmp.norm.old.vte <- filter(tmp.pts.normal, age.gt60 == TRUE, vte == TRUE)
 
 
 tmp.sample <- sample_n(tmp.pts.normal[tmp.pts.normal$age.gt60 == FALSE, ], size = nrow(tmp.pts.mod[tmp.pts.mod$age.gt60 == FALSE, ])) %>%
