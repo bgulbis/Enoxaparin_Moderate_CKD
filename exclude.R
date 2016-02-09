@@ -373,9 +373,29 @@ tmp.norm.old.novte <- filter(tmp.pts.normal, age.gt60 == TRUE, vte == FALSE)
 tmp.norm.young.vte <- filter(tmp.pts.normal, age.gt60 == FALSE, vte == TRUE)
 tmp.norm.old.vte <- filter(tmp.pts.normal, age.gt60 == TRUE, vte == TRUE)
 
+match_groups <- function(grp.mod, grp.norm) {
+    if (nrow(grp.norm) > nrow(grp.mod)) {
+        sample.mod <- grp.mod
+        sample.norm <- sample_n(grp.norm, size = nrow(grp.mod))
+    } else {
+        sample.mod <- sample_n(grp.mod, size = nrow(grp.norm))
+        sample.norm <- grp.norm
+    }
 
-tmp.sample <- sample_n(tmp.pts.normal[tmp.pts.normal$age.gt60 == FALSE, ], size = nrow(tmp.pts.mod[tmp.pts.mod$age.gt60 == FALSE, ])) %>%
-        bind_rows(sample_n(tmp.pts.normal[tmp.pts.normal$age.gt60 == TRUE, ], size = nrow(tmp.pts.mod[tmp.pts.mod$age.gt60 == TRUE, ])))
+    list(mod = sample.mod, norm = sample.norm)    
+}
 
-data.patients <- bind_rows(tmp.pts.mod, tmp.sample) %>%
+list.young.novte <- match_groups(tmp.mod.young.novte, tmp.norm.young.novte)
+list.old.novte <- match_groups(tmp.mod.old.novte, tmp.norm.old.novte)
+list.young.vte <- match_groups(tmp.mod.young.vte, tmp.norm.young.vte)
+list.old.vte <- match_groups(tmp.mod.old.vte, tmp.norm.old.vte)
+
+tmp1 <- bind_rows(list.young.novte) 
+tmp2 <- bind_rows(list.old.novte) 
+tmp3 <- bind_rows(list.young.vte)
+tmp4 <- bind_rows(list.old.vte) 
+
+data.patients <- bind_rows(tmp1, tmp2, tmp3, tmp4) %>%
     mutate(group = factor(group))
+
+
