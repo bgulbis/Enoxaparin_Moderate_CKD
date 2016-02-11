@@ -398,4 +398,12 @@ tmp4 <- bind_rows(list.old.vte)
 data.patients <- bind_rows(tmp1, tmp2, tmp3, tmp4) %>%
     mutate(group = factor(group))
 
+data.incl.pts <- data.patients$pie.id
+
+# split the patients up into groups of 1000
+edw.incl.pie <- split(data.incl.pts, ceiling(seq_along(data.incl.pts)/500))
+# combine the id's in each group into a string, separated by semi-colon
+edw.incl.pie <- lapply(edw.incl.pie, str_c, collapse=";")
+
+print(edw.incl.pie)
 
