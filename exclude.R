@@ -4,11 +4,6 @@
 
 source("library.R")
 
-exclude.dir <- "Exclusion"
-
-# compress data files
-gzip_files(exclude.dir)
-
 # raw data ---------------------------------------------------------------------
 # read in all data files needed to evaluate for exclusion
 raw.excl.demograph <- list.files(exclude.dir, pattern="^demographics", full.names=TRUE) %>%

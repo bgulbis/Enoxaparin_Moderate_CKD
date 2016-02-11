@@ -7,3 +7,11 @@ library(stringr)
 library(BGTools)
 library(lubridate)
 library(tidyr)
+
+# set directories for data
+exclude.dir <- "Exclusion"
+data.dir <- "Data"
+
+# compress source files
+gzip_files(exclude.dir)
+gzip_files(data.dir)
