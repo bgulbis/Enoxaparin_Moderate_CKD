@@ -393,6 +393,8 @@ tmp4 <- bind_rows(list.old.vte)
 data.patients <- bind_rows(tmp1, tmp2, tmp3, tmp4) %>%
     mutate(group = factor(group))
 
+saveRDS(data.patients, "included_patients.Rds")
+
 data.incl.pts <- data.patients$pie.id
 
 # split the patients up into groups of 1000

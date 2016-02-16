@@ -18,9 +18,8 @@ raw.procedures <- read_edw_data(data.dir, file.name = "procedures")
 raw.radiology <- read_edw_data(data.dir, file.name = "radiology")
 raw.surgeries <- read_edw_data(data.dir, file.name = "surgeries")
 
+if (!exists("data.patients")) {
+    data.patients <- readRDS("included_patients.Rds")
+}
 
-# 
-# raw <- list.files(data.dir, pattern = "surgeries", full.names = TRUE) %>%
-#     lapply(read.csv, colClasses = "character") %>%
-#     bind_rows %>%
-#     distinct
+incl.pts <- data.patients$pie.id
