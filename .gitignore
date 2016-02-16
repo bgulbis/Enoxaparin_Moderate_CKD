@@ -10,3 +10,4 @@ Exclusion
 *.pptx
 Data
 *.db
+included_patients.Rds

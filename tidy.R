@@ -23,3 +23,28 @@ if (!exists("data.patients")) {
 }
 
 incl.pts <- data.patients$pie.id
+
+# demographics ----
+data.demograph <- raw.demograph %>%
+    inner_join(select(data.patients, pie.id, afib:vte), by = "pie.id")
+
+rm(data.patients)
+
+# diagnosis ----
+# get desired diagnosis codes
+ref.pmh.codes <- read.csv("Lookup/pmh_lookup.csv", colClasses = "character")
+
+tmp.icd9.codes <- icd9_lookup(ref.pmh.codes)
+
+tmp.diagnosis <- raw.diagnosis %>%
+    filter(diag.type != "Admitting",
+           diag.type != "Working") %>%
+    inner_join(tmp.icd9.codes, by = c("diag.code" = "icd9.code")) %>%
+    mutate(disease.state = factor(disease.state),
+           value = TRUE) %>%
+    select(pie.id, disease.state, value) %>%
+    group_by(pie.id, disease.state) %>%
+    distinct %>%
+    spread(disease.state, value, fill = FALSE, drop = FALSE)
+
+
