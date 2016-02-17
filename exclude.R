@@ -128,6 +128,9 @@ tmp.enox.courses <- raw.excl.enox %>%
               dose.count = first(dose.count),
               duration = first(duration),
               freq = first(freq))
+
+# export enoxaparin courses for use in tidying
+saveRDS(tmp.enox.courses, "enoxaparin_courses.Rds")
     
 pts.include <- tmp.enox.courses$pie.id
     
@@ -380,20 +383,27 @@ match_groups <- function(grp.mod, grp.norm) {
     list(mod = sample.mod, norm = sample.norm)    
 }
 
-list.young.novte <- match_groups(tmp.mod.young.novte, tmp.norm.young.novte)
-list.old.novte <- match_groups(tmp.mod.old.novte, tmp.norm.old.novte)
-list.young.vte <- match_groups(tmp.mod.young.vte, tmp.norm.young.vte)
-list.old.vte <- match_groups(tmp.mod.old.vte, tmp.norm.old.vte)
-
-tmp1 <- bind_rows(list.young.novte) 
-tmp2 <- bind_rows(list.old.novte) 
-tmp3 <- bind_rows(list.young.vte)
-tmp4 <- bind_rows(list.old.vte) 
-
-data.patients <- bind_rows(tmp1, tmp2, tmp3, tmp4) %>%
-    mutate(group = factor(group))
-
-saveRDS(data.patients, "included_patients.Rds")
+if (!exists("data.patients")) {
+    tmp <- list.files(pattern = "included_patients.Rds")
+    if (length(tmp) >= 1) {
+        data.patients <- readRDS("included_patients.Rds")
+    } else {
+        list.young.novte <- match_groups(tmp.mod.young.novte, tmp.norm.young.novte)
+        list.old.novte <- match_groups(tmp.mod.old.novte, tmp.norm.old.novte)
+        list.young.vte <- match_groups(tmp.mod.young.vte, tmp.norm.young.vte)
+        list.old.vte <- match_groups(tmp.mod.old.vte, tmp.norm.old.vte)
+        
+        tmp1 <- bind_rows(list.young.novte) 
+        tmp2 <- bind_rows(list.old.novte) 
+        tmp3 <- bind_rows(list.young.vte)
+        tmp4 <- bind_rows(list.old.vte) 
+        
+        data.patients <- bind_rows(tmp1, tmp2, tmp3, tmp4) %>%
+            mutate(group = factor(group))
+        
+        saveRDS(data.patients, "included_patients.Rds")
+    }
+}
 
 data.incl.pts <- data.patients$pie.id
 

@@ -11,3 +11,4 @@ Exclusion
 Data
 *.db
 included_patients.Rds
+enoxaparin_courses.Rds

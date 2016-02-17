@@ -17,6 +17,7 @@ raw.meds.sched <- read_edw_data(data.dir, file.name = "meds_sched")
 raw.procedures <- read_edw_data(data.dir, file.name = "procedures")
 raw.radiology <- read_edw_data(data.dir, file.name = "radiology")
 raw.surgeries <- read_edw_data(data.dir, file.name = "surgeries")
+raw.enox.freq <- read_edw_data(data.dir, file.name = "meds_sched_enox", type = "meds_sched_freq")
 
 if (!exists("data.patients")) {
     data.patients <- readRDS("included_patients.Rds")
@@ -33,18 +34,19 @@ rm(data.patients)
 # diagnosis ----
 # get desired diagnosis codes
 ref.pmh.codes <- read.csv("Lookup/pmh_lookup.csv", colClasses = "character")
+# use standard tidying function
+data.diagnosis <- tidy_data("diagnosis", ref.data = ref.pmh.codes, pt.data = raw.diagnosis, patients = data.demograph) 
 
-tmp.icd9.codes <- icd9_lookup(ref.pmh.codes)
+# home meds ----
+# get desired medication classes
+ref.home.meds <- med_lookup(c("anticoagulants", "antiplatelet agents"))
+# use standard tidying function
+data.home.meds <- tidy_data("outpt_meds", ref.data = ref.home.meds, pt.data = raw.home.meds, patients = data.demograph)
 
-tmp.diagnosis <- raw.diagnosis %>%
-    filter(diag.type != "Admitting",
-           diag.type != "Working") %>%
-    inner_join(tmp.icd9.codes, by = c("diag.code" = "icd9.code")) %>%
-    mutate(disease.state = factor(disease.state),
-           value = TRUE) %>%
-    select(pie.id, disease.state, value) %>%
-    group_by(pie.id, disease.state) %>%
-    distinct %>%
-    spread(disease.state, value, fill = FALSE, drop = FALSE)
+# hospital meds ----
+if (!exists("tmp.enox.courses")) {
+    tmp.enox.courses <- readRDS("enoxaparin_courses.Rds")
+}
 
-
+tmp.enox.courses <- filter(tmp.enox.courses, pie.id %in% incl.pts) %>%
+    select(-last.datetime)
