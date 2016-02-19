@@ -1,3 +1,8 @@
-name,type
-heparin,med
-thrombin inhibitors,class
+name,type,group
+heparin,med,cont
+bivalirudin,med,cont
+argatroban,med,cont
+dalteparin,med,sched
+apixaban,med,sched
+rivaroxaban,med,sched
+edoxaban,med,sched

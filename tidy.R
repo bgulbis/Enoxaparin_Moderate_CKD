@@ -57,7 +57,7 @@ data.enox.courses <- filter(tmp.enox.courses, pie.id %in% incl.pts) %>%
     select(-last.datetime, -course.count) %>%
     mutate(freq = factor(freq, exclude = ""))
 
-# get other medications
+# get continuous medications
 ref.meds.confound <- read_data(lookup.dir, "meds_confound")
 # use standard tidying function
 tmp.meds.cont <- tidy_data("meds_cont", ref.data = ref.meds.confound, 
@@ -67,3 +67,5 @@ tmp.meds.cont <- tidy_data("meds_cont", ref.data = ref.meds.confound,
 tmp.meds.cont <- calc_runtime(tmp.meds.cont)
 # summarize data
 data.meds.cont <- summarize_cont_meds(tmp.meds.cont)
+
+# get scheduled medications
