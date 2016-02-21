@@ -68,4 +68,6 @@ tmp.meds.cont <- calc_runtime(tmp.meds.cont)
 # summarize data
 data.meds.cont <- summarize_cont_meds(tmp.meds.cont)
 
-# get scheduled medications
+# use standard tidying function for scheduled medications
+tmp.meds.sched <- tidy_data("meds_sched", ref.data = ref.meds.confound, 
+                           sched.data = raw.meds.sched, patients = data.demograph)
