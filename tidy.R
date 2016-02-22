@@ -32,12 +32,16 @@ data.demograph <- raw.demograph %>%
 
 rm(data.patients)
 
+saveRDS(data.demograph, "Preliminary Analysis/demograph.Rds")
+
 # diagnosis ----
 # get desired diagnosis codes
 ref.pmh.codes <- read_data(lookup.dir, "pmh_lookup.csv")
 # use standard tidying function
 data.diagnosis <- tidy_data("diagnosis", ref.data = ref.pmh.codes, 
                             pt.data = raw.diagnosis, patients = data.demograph) 
+
+saveRDS(data.diagnosis, "Preliminary Analysis/diagnosis.Rds")
 
 # home meds ----
 # get desired medication classes

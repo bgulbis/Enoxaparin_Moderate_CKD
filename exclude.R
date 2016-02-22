@@ -133,6 +133,7 @@ tmp.enox.courses <- raw.excl.enox %>%
 saveRDS(tmp.enox.courses, "enoxaparin_courses.Rds")
     
 pts.include <- tmp.enox.courses$pie.id
+pts.eligible <- pts.include
     
 # exclusion --------------------------------------------------------------------
 # criteria: pregnancy, weight < 45 or > 150, >1 CrCl <30 during enoxaparin,

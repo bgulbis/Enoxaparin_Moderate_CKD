@@ -1,0 +1,31 @@
+---
+title: "Screening and Exclusion"
+author: "Stephanie Kuhl, Brian Gulbis, Andrea C. Hall"
+date: '`r format(Sys.Date(), "%B %d, %Y")`'
+output: html_document
+---
+
+```{r echo=FALSE, warning=FALSE, message=FALSE, results='hide'}
+source("screen.R")
+source("exclude.R")
+```
+
+## Patient Screening
+
+* Potential patients identified: `r length(pts.screen)`
+* Eligible for inclusion: `r length(pts.eligible)`
+* Number of patients excluded:
+    - Dosage change > 10% (q12h) or > 15% (q24h): `r length(excl.dose)`
+    - Weight < 45 kg or > 150 kg: `r length(excl.weight)`
+    - More than 1 CrCl < 30 mL/min: `r length(excl.crcl)`
+    - Pregnancy: `r length(excl.preg)`
+    - Received other anticoagulants while on enoxaparin: `r length(excl.anticoag)`
+    - Missing indications: `r length(excl.indication)`
+    - Readmission encounter: `r length(excl.readmit)`
+* Number of patients remaining: `r length(pts.include)`
+    - Moderate Group: `r nrow(tmp.pts.mod)`
+    - Normal Group: `r nrow(tmp.pts.normal)`
+* Patients were matched on a 1:1 ratio based on:
+    - Age </= 60 years old vs. > 60 years old
+    - VTE or no VTE
+* Final number of patients included: `r length(data.incl.pts)` (`r length(data.incl.pts) / 2` in each group)
