@@ -75,3 +75,17 @@ data.meds.cont <- summarize_cont_meds(tmp.meds.cont)
 # use standard tidying function for scheduled medications
 tmp.meds.sched <- tidy_data("meds_sched", ref.data = ref.meds.confound, 
                            sched.data = raw.meds.sched, patients = data.demograph)
+
+# diagnostic scans ----
+# get list of FINs for manual lookup
+ref.fins <- read_edw_data(data.dir, "identifiers", type = "id") 
+    
+man.review <- raw.radiology %>%
+    inner_join(data.enox.courses, by = "pie.id") %>%
+    inner_join(ref.fins, by = "pie.id") %>%
+    filter(rad.datetime >= first.datetime,
+           str_detect(rad.type, "CT|Doppler|MRI|US"))  %>%
+    select(fin, rad.datetime, rad.type)
+
+# export to csv file
+write.csv(man.review, "diagnostic_scans.csv", row.names = FALSE)

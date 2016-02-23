@@ -14,3 +14,5 @@ included_patients.Rds
 enoxaparin_courses.Rds
 Preliminary Analysis/demograph.Rds
 Preliminary Analysis/diagnosis.Rds
+*.xlsx
+diagnostic_scans.csv
