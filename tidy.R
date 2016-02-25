@@ -19,6 +19,7 @@ raw.radiology <- read_edw_data(data.dir, file.name = "radiology")
 raw.surgeries <- read_edw_data(data.dir, file.name = "surgeries")
 raw.enox.freq <- read_edw_data(data.dir, file.name = "meds_sched_enox", 
                                type = "meds_sched_freq")
+raw.probs <- read_edw_data(data.dir, file.name = "problems")
 
 if (!exists("data.patients")) {
     data.patients <- readRDS("included_patients.Rds")
@@ -89,3 +90,7 @@ man.review <- raw.radiology %>%
 
 # export to csv file
 write.csv(man.review, "diagnostic_scans.csv", row.names = FALSE)
+
+# problem list ----
+
+
