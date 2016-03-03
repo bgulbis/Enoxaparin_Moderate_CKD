@@ -4,28 +4,7 @@
 
 source("library.R")
 
-lab_change_test <- function(lab.data, change.by, decrease = TRUE, back = 2, units = "days") {
-    # calculate the number of rows that are included within the window
-    dots <- list(~count_rowsback(lab.datetime))
-    lab.data <- mutate_(lab.data, .dots = setNames(dots, "rowsback"))
-    
-    # calculate the running max during the time window
-    dots <- list(~zoo::rollapplyr(as.numeric(lab.result), rowsback, max, fill = NA,
-                                  partial = TRUE))
-    lab.data <- mutate_(lab.data, .dots = setNames(dots, "runmax"))
-
-    # drop = as.numeric(result) - runmax,
-    
-    if (decrease == TRUE) {
-        lab.data <- filter_(lab.data, .dots = list(~change <= change.by))
-    } else {
-        lab.data <- filter_(lab.data, .dots = list(~change >= change.by))
-    }
-        
-        
-    return(lab.data)
-}
-
+# get all hgb values during enoxaparin course + 2 days
 tmp.hgb <- raw.labs %>%
     inner_join(data.enox.courses, by="pie.id") %>%
     filter(lab == "Hgb",
@@ -34,4 +13,5 @@ tmp.hgb <- raw.labs %>%
     group_by(pie.id) %>%
     arrange(lab.datetime) 
     
-tmp <- lab_change_test(tmp.hgb)
+# find all drops in hgb by >= 2 g/dL
+tmp <- lab_change(tmp.hgb, -2, max)
