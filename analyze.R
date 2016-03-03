@@ -7,14 +7,14 @@ source("library.R")
 # bleeding ----
 
 # get all hgb values during enoxaparin course + 2 days
+dtcols <- c("lab.datetime", "first.datetime", "end.datetime")
+
 tmp.hgb <- raw.labs %>%
-    inner_join(data.enox.courses, by="pie.id") %>%
-    filter(lab == "hgb",
-           lab.datetime >= first.datetime,
-           lab.datetime <= end.datetime) %>%
+    filter(lab == "hgb") %>% 
+    filter_dates(data.enox.courses, dtcols = dtcols) %>%
     group_by(pie.id) %>%
     arrange(lab.datetime) 
-    
+
 # find all patients with a drop in hgb by >= 2 g/dL
 tmp.hgb.drop <- lab_change(tmp.hgb, -2, max) %>%
     distinct(pie.id) %>%
@@ -22,11 +22,11 @@ tmp.hgb.drop <- lab_change(tmp.hgb, -2, max) %>%
     select(pie.id, hgb.drop)
 
 # find patients getting transfused
+dtcols <- c("blood.datetime", "first.datetime", "end.datetime")
+
 tmp.prbc <- raw.blood %>%
-    inner_join(data.enox.courses, by="pie.id") %>%
-    filter(blood.prod == "prbc",
-           blood.datetime >= first.datetime,
-           blood.datetime <= end.datetime) %>%
+    filter(blood.prod == "prbc") %>%
+    filter_dates(data.enox.courses, dtcols = dtcols) %>%
     group_by(pie.id) %>%
     distinct(pie.id) %>%
     mutate(prbc = TRUE) %>%

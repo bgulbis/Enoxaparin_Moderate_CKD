@@ -60,7 +60,7 @@ if (!exists("tmp.enox.courses")) {
 
 data.enox.courses <- filter(tmp.enox.courses, pie.id %in% incl.pts) %>%
     select(-last.datetime, -course.count) %>%
-    mutate(freq = factor(freq, exclude = ""))
+    mutate(freq = factor(freq, exclude = "")) 
 
 # get continuous medications
 ref.meds.confound <- read_data(lookup.dir, "meds_confound")
