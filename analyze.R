@@ -46,7 +46,7 @@ data.bleed <- data.diagnosis %>%
            minor.bleed = ifelse(major.bleed == FALSE & bleed.minor == TRUE, 
                                 TRUE, FALSE),
            drop.prbc = ifelse(hgb.drop == TRUE & prbc == TRUE, TRUE, FALSE)) %>%
-    select(pie.id, major.bleed, minor.bleed, hgb.drop, prbc, drop.prbc)
+    select(-starts_with("bleed"))
 
 # save bleeding data
 saveRDS(data.bleed, "Preliminary Analysis/bleeding.Rds")
