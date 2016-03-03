@@ -11,6 +11,7 @@ library(FSA)
 library(dplyr)
 if (!exists("data.demograph")) data.demograph <- readRDS("Preliminary Analysis/demograph.Rds")
 if (!exists("data.diagnosis")) data.diagnosis <- readRDS("Preliminary Analysis/diagnosis.Rds")
+if (!exists("data.bleed")) data.bleed <- readRDS("Preliminary Analysis/bleeding.Rds")
 # panderOptions("round", 4)
 # options(scipen = 999)
 ```
@@ -61,7 +62,33 @@ Data is evaluated using the Chi-squared test.
 
 ```{r echo=FALSE, warning=FALSE}
 test <- temp[,!c(cont)]
-test <- select(test, -(pie.id:person.id), -(group:vte))
+test <- select(test, -(pie.id:person.id), -(group:vte), -starts_with("bleed"))
+
+ds1 <- lapply(test, function(x) table(x, temp$group))
+ds2 <- lapply(test, function(x) Summarize(temp$group ~ x, percent="column", addtotal=FALSE))
+# csq <- lapply(ds1, summary)
+
+csq <- lapply(test, function(x) 
+    if(is.factor(x)) {
+        chisq.test(x, temp$group)
+    } else if(is.logical(x) & sum(x, na.rm=TRUE) > 0) {
+        chisq.test(x, temp$group)
+    } else {
+        "Chi-squared could not be performed"
+    })
+
+ds3 <- lapply(seq_along(ds1), function(i) list(counts = ds1[[i]], percents = ds2[[i]], chi.sq = csq[[i]]))
+names(ds3) <- names(ds1)
+
+pander(ds3)
+```
+
+### Bleeding Outcomes
+
+Data is evaluated using the Chi-squared test. 
+
+```{r echo=FALSE, warning=FALSE}
+test <- select(data.bleed, -pie.id)
 
 ds1 <- lapply(test, function(x) table(x, temp$group))
 ds2 <- lapply(test, function(x) Summarize(temp$group ~ x, percent="column", addtotal=FALSE))
