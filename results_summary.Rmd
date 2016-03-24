@@ -8,22 +8,48 @@ output: html_document
 
 ```{r}
 # library(pander)
-library(BGTools)
+source("library.R")
 library(rtable)
-if (!exists("analyze.demograph")) analyze.demograph <- readRDS("Analysis/demographics.Rds")
+library(tableone)
+library(pander)
+panderOptions("table.split.table", Inf)
+if (!exists("analyze.demographics")) analyze.demographics <- readRDS(paste(analysis.dir, "demographics.Rds", sep="/"))
 ```
 
-## Demographics
+## FlexTable
 ```{r results='asis'}
 # cat(result_table("html", analyze.demograph, "title"))
-res <- result_table("table", analyze.demograph, "title")
+res <- result_table("table", analyze.demographics, "title")
 res
 ```
 
+## TableOne
+
+### Categorical
 ```{r}
-library(tableone)
-x <- create_tableone(analyze.demograph, "group")
-print(x)
-summary(x)
+x <- create_tableone(analyze.demographics, "group")
+x.cat <- print(x$CatTable, printToggle = FALSE)
+pander(x.cat)
 ```
 
+### Cross Tables
+```{r}
+print(x$CatTable, CrossTable = TRUE)
+```
+
+### Continuous Means
+```{r}
+x.cont <- print(x$ContTable, printToggle = FALSE)
+pander(x.cont)
+```
+
+### Continuous Medians
+```{r}
+x.med <- print(x$ContTable, printToggle = FALSE, nonnormal = names(analyze.demographics))
+pander(x.med)
+```
+
+### Continuous Details
+```{r}
+summary(x$ContTable)
+```
