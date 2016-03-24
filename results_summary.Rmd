@@ -1,0 +1,29 @@
+---
+title: "Bleeding Events with Enxoaparin in Moderate Renal Dysfunction"
+subtitle: "Detailed Results"
+author: "Stephanie Kuhl, Brian Gulbis, Andrea C. Hall"
+date: "March 24, 2016"
+output: html_document
+---
+
+```{r}
+# library(pander)
+library(BGTools)
+library(rtable)
+if (!exists("analyze.demograph")) analyze.demograph <- readRDS("Analysis/demographics.Rds")
+```
+
+## Demographics
+```{r results='asis'}
+# cat(result_table("html", analyze.demograph, "title"))
+res <- result_table("table", analyze.demograph, "title")
+res
+```
+
+```{r}
+library(tableone)
+x <- create_tableone(analyze.demograph, "group")
+print(x)
+summary(x)
+```
+
