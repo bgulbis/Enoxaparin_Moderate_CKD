@@ -6,9 +6,7 @@ source("library.R")
 
 # raw data ---------------------------------------------------------------------
 # read in all data files needed to evaluate for exclusion
-raw.excl.demograph <- list.files(exclude.dir, pattern="^demographics", full.names=TRUE) %>%
-    lapply(read.csv, colClasses="character") %>%
-    bind_rows %>%
+raw.excl.demograph <- read_data(exclude.dir, "demographics", base = TRUE) %>%
     transmute(pie.id = PowerInsight.Encounter.Id,
               person.id = Person.ID,
               age = as.numeric(Age..Years..Visit.),
