@@ -52,14 +52,17 @@ data.bleed <- data.diagnosis %>%
 saveRDS(data.bleed, "Preliminary Analysis/bleeding.Rds")
 
 # make data frames to use for analysis
-analyze.demograph <- select(data.demograph, -person.id)
-saveRDS(analyze.demograph, paste(analysis.dir, "demographics.Rds", sep="/"))
+analyze.demographics <- select(data.demograph, -person.id)
+saveRDS(analyze.demographics, paste(analysis.dir, "demographics.Rds", sep="/"))
 
 analyze.bleed <- inner_join(data.groups, data.bleed, by = "pie.id")
+saveRDS(analyze.bleed, paste(analysis.dir, "bleed.Rds", sep="/"))
 
 analyze.diagnosis <- inner_join(data.groups, data.diagnosis, by = "pie.id")
+saveRDS(analyze.diagnosis, paste(analysis.dir, "diagnosis.Rds", sep="/"))
 
 analyze.home.meds <- inner_join(data.groups, data.home.meds, by = "pie.id") 
 names(analyze.home.meds) <- make.names(names(analyze.home.meds))
+saveRDS(analyze.home.meds, paste(analysis.dir, "home_meds.Rds", sep="/"))
 
 
