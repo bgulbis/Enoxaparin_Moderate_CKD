@@ -1,0 +1,21 @@
+# report.R
+
+source("library.R")
+
+# create docx object with project title and authors
+project <- "Bleeding Events with Enoxaparin in Patients with Moderate Renal Dysfunction"
+authors <- "Stephanie Kuhl, Brian Gulbis, Andrea C. Hall"
+
+mydoc <- result_docx(project, authors)
+
+# add results tables
+mydoc <- result_table(mydoc, analyze.demograph, "Demographics")
+mydoc <- result_table(mydoc, analyze.diagnosis, "Past Medical History")
+mydoc <- result_table(mydoc, analyze.home.meds, "Home Medications")
+mydoc <- result_table(mydoc, analyze.bleed, "Bleeding Events")
+
+# add result table for each continuous agent
+# mydoc <- result_table2(mydoc, analyze.sedatives, "med", "Continuous Medications")
+
+# add citation and write docx to Word
+write_docx(mydoc, file = "Analysis/alcalde_results.docx")

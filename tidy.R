@@ -6,20 +6,29 @@ source("library.R")
 
 # raw data ----
 
-raw.blood <- read_edw_data(data.dir, file.name = "blood")
-raw.demograph <- read_edw_data(data.dir, file.name = "demographics")
-raw.diagnosis <- read_edw_data(data.dir, file.name = "diagnosis")
-raw.home.meds <- read_edw_data(data.dir, file.name = "home_meds")
-raw.labs <- read_edw_data(data.dir, file.name = "labs")
-raw.measures <- read_edw_data(data.dir, file.name = "measures")
+raw.blood <- read_edw_data(data.dir, file.name = "blood", 
+                           check.distinct = TRUE)
+raw.demograph <- read_edw_data(data.dir, file.name = "demographics", 
+                               check.distinct = TRUE)
+raw.diagnosis <- read_edw_data(data.dir, file.name = "diagnosis", 
+                               check.distinct = TRUE)
+raw.home.meds <- read_edw_data(data.dir, file.name = "home_meds", 
+                               check.distinct = TRUE)
+raw.labs <- read_edw_data(data.dir, file.name = "labs", check.distinct = TRUE)
+raw.measures <- read_edw_data(data.dir, file.name = "measures", 
+                              check.distinct = TRUE)
 raw.meds.cont <- read_edw_data(data.dir, file.name = "meds_continuous")
-raw.meds.sched <- read_edw_data(data.dir, file.name = "meds_sched")
-raw.procedures <- read_edw_data(data.dir, file.name = "procedures")
-raw.radiology <- read_edw_data(data.dir, file.name = "radiology")
+raw.meds.sched <- read_edw_data(data.dir, file.name = "meds_sched", 
+                                check.distinct = TRUE)
+raw.procedures <- read_edw_data(data.dir, file.name = "procedures", 
+                                check.distinct = TRUE)
+raw.radiology <- read_edw_data(data.dir, file.name = "radiology", 
+                               check.distinct = TRUE)
 raw.surgeries <- read_edw_data(data.dir, file.name = "surgeries")
 raw.enox.freq <- read_edw_data(data.dir, file.name = "meds_sched_enox", 
                                type = "meds_sched_freq")
-raw.probs <- read_edw_data(data.dir, file.name = "problems")
+raw.probs <- read_edw_data(data.dir, file.name = "problems", 
+                           check.distinct = TRUE)
 
 if (!exists("data.patients")) {
     data.patients <- readRDS("included_patients.Rds")
@@ -35,12 +44,14 @@ rm(data.patients)
 
 saveRDS(data.demograph, "Preliminary Analysis/demograph.Rds")
 
+data.groups <- select(data.demograph, pie.id, group)
+
 # diagnosis ----
 # get desired diagnosis codes
 ref.pmh.codes <- read_data(lookup.dir, "pmh_lookup.csv")
 # use standard tidying function
 data.diagnosis <- tidy_data("diagnosis", ref.data = ref.pmh.codes, 
-                            pt.data = raw.diagnosis, patients = data.demograph) 
+                            pt.data = raw.diagnosis, patients = data.groups) 
 
 saveRDS(data.diagnosis, "Preliminary Analysis/diagnosis.Rds")
 
@@ -49,7 +60,7 @@ saveRDS(data.diagnosis, "Preliminary Analysis/diagnosis.Rds")
 ref.home.meds <- read_data(lookup.dir, "home_meds_lookup.csv")
 # use standard tidying function
 data.home.meds <- tidy_data("meds_outpt", ref.data = ref.home.meds, 
-                            pt.data = raw.home.meds, patients = data.demograph)
+                            pt.data = raw.home.meds, patients = data.groups)
 
 # hospital meds ----
 
@@ -89,7 +100,7 @@ man.review <- raw.radiology %>%
     select(fin, rad.datetime, rad.type)
 
 # export to csv file
-write.csv(man.review, "diagnostic_scans.csv", row.names = FALSE)
+write_csv(man.review, "diagnostic_scans.csv")
 
 # problem list ----
 

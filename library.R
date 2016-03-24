@@ -4,6 +4,7 @@
 
 library(dplyr)
 library(stringr)
+library(readr)
 library(BGTools)
 library(lubridate)
 library(tidyr)
@@ -12,6 +13,7 @@ library(tidyr)
 exclude.dir <- "Exclusion"
 data.dir <- "Data"
 lookup.dir <- "Lookup"
+analysis.dir <- "Analysis"
 
 # compress source files
 gzip_files(exclude.dir)
