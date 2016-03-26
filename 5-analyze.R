@@ -37,13 +37,15 @@ data.bleed <- data.diagnosis %>%
     select(pie.id, starts_with("bleed")) %>%
     full_join(tmp.hgb.drop, by = "pie.id") %>%
     full_join(tmp.prbc, by = "pie.id") %>%
+    full_join(data.manual.bleed, by = "pie.id") %>%
+    mutate_each(funs(ifelse(is.na(.), FALSE, .)), -pie.id, -enox.days) %>%
     mutate(hgb.drop = ifelse(is.na(hgb.drop), FALSE, hgb.drop),
            prbc = ifelse(is.na(prbc), FALSE, prbc),
-           major.bleed = ifelse(bleed.major == TRUE | 
+           major.bleed = ifelse(bleed.major == TRUE | ct.major == TRUE |
                                     (bleed.minor == TRUE & hgb.drop == TRUE) |
                                     (bleed.minor == TRUE & prbc == TRUE), 
                                 TRUE, FALSE),
-           minor.bleed = ifelse(major.bleed == FALSE & bleed.minor == TRUE, 
+           minor.bleed = ifelse(major.bleed == FALSE & (bleed.minor == TRUE | ct.bleed == TRUE), 
                                 TRUE, FALSE),
            drop.prbc = ifelse(hgb.drop == TRUE & prbc == TRUE, TRUE, FALSE)) %>%
     select(-starts_with("bleed"))
@@ -55,7 +57,8 @@ saveRDS(data.bleed, "Preliminary Analysis/bleeding.Rds")
 analyze.demographics <- select(data.demograph, -person.id)
 saveRDS(analyze.demographics, paste(analysis.dir, "demographics.Rds", sep="/"))
 
-analyze.bleed <- inner_join(data.groups, data.bleed, by = "pie.id")
+analyze.bleed <- left_join(data.groups, data.bleed, by = "pie.id") %>%
+    mutate_each(funs(ifelse(is.na(.), FALSE, .)), -pie.id, -enox.days)
 saveRDS(analyze.bleed, paste(analysis.dir, "bleed.Rds", sep="/"))
 
 analyze.diagnosis <- inner_join(data.groups, data.diagnosis, by = "pie.id")
@@ -64,3 +67,7 @@ saveRDS(analyze.diagnosis, paste(analysis.dir, "diagnosis.Rds", sep="/"))
 analyze.home.meds <- inner_join(data.groups, data.home.meds, by = "pie.id") 
 names(analyze.home.meds) <- make.names(names(analyze.home.meds))
 saveRDS(analyze.home.meds, paste(analysis.dir, "home_meds.Rds", sep="/"))
+
+analyze.thrombosis <- left_join(data.groups, data.manual.thrmb, by = "pie.id") %>%
+    mutate(thrombus = ifelse(is.na(thrombus), FALSE, thrombus))
+saveRDS(analyze.diagnosis, paste(analysis.dir, "thrombosis.Rds", sep="/"))

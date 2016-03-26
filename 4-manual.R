@@ -19,10 +19,14 @@ data.manual <- raw.manual %>%
 
 data.manual.thrmb <- data.manual %>%
     filter(thrombus == TRUE) %>%
-    mutate(enox.days = as.numeric(difftime(rad.datetime, first.datetime, units = "days"))) %>%
+    mutate(enox.days = as.numeric(difftime(rad.datetime, first.datetime, units = "days")),
+           stroke = str_detect(rad.type, regex("head|brain", ignore_case = TRUE)),
+           pe = str_detect(rad.type, regex("chest|pulm", ignore_case = TRUE))) %>%
     group_by(pie.id) %>%
     summarize(thrombus = first(thrombus),
-              enox.days = min(enox.days)) %>%
+              enox.days = min(enox.days),
+              stroke.new = ifelse(sum(stroke) > 0, TRUE, FALSE),
+              pe.new = ifelse(sum(pe) > 0, TRUE, FALSE)) %>%
     filter(enox.days >= 2)
 
 data.manual.bleed <- data.manual %>%
@@ -30,7 +34,7 @@ data.manual.bleed <- data.manual %>%
     mutate(enox.days = as.numeric(difftime(rad.datetime, first.datetime, units = "days")),
            ct.major = str_detect(rad.type, regex("head|brain", ignore_case = TRUE))) %>%
     group_by(pie.id) %>%
-    summarize(bleed = first(bleed),
+    summarize(ct.bleed = first(bleed),
               enox.days = min(enox.days),
               ct.major = ifelse(sum(ct.major) > 0, TRUE, FALSE)) %>%
     filter(enox.days >= 2)
