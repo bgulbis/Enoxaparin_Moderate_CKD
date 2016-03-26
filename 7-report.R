@@ -18,8 +18,10 @@ mydoc <- result_docx(project, authors)
 mydoc <- result_table(mydoc, analyze.demographics, "Demographics")
 mydoc <- result_table(mydoc, analyze.diagnosis, "Past Medical History")
 mydoc <- result_table(mydoc, analyze.home.meds, "Home Medications")
-mydoc <- result_table(mydoc, analyze.bleed, "Bleeding Events")
-mydoc <- result_table(mydoc, analyze.thrombosis, "New Thrombosis")
+cram <- c("drop.after.procedure", "prbc.after.procedure", "prbc.after.drop")
+mydoc <- result_table(mydoc, analyze.bleed, "Bleeding Events", cram = cram)
+cram <- c("stroke.new", "pe.new")
+mydoc <- result_table(mydoc, analyze.thrombosis, "New Thrombosis", cram = cram)
 
 # add result table for each continuous agent
 # mydoc <- result_table2(mydoc, analyze.sedatives, "med", "Continuous Medications")
