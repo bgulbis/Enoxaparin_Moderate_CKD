@@ -64,5 +64,3 @@ saveRDS(analyze.diagnosis, paste(analysis.dir, "diagnosis.Rds", sep="/"))
 analyze.home.meds <- inner_join(data.groups, data.home.meds, by = "pie.id") 
 names(analyze.home.meds) <- make.names(names(analyze.home.meds))
 saveRDS(analyze.home.meds, paste(analysis.dir, "home_meds.Rds", sep="/"))
-
-
