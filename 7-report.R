@@ -1,6 +1,6 @@
 # report.R
 
-source("library.R")
+source("0-library.R")
 
 if (!exists("analyze.demographics")) analyze.demographics <- readRDS(paste(analysis.dir, "demographics.Rds", sep="/"))
 if (!exists("analyze.diagnosis")) analyze.diagnosis <- readRDS(paste(analysis.dir, "diagnosis.Rds", sep="/"))

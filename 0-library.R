@@ -14,6 +14,7 @@ exclude.dir <- "Exclusion"
 data.dir <- "Data"
 lookup.dir <- "Lookup"
 analysis.dir <- "Analysis"
+manual.dir <- "Manual"
 
 # compress source files
 gzip_files(exclude.dir)
