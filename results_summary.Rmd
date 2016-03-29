@@ -7,13 +7,12 @@ output: html_document
 ---
 
 ```{r}
-# library(pander)
-source("library.R")
+source("0-library.R")
 library(rtable)
 library(tableone)
 library(pander)
 panderOptions("table.split.table", Inf)
-if (!exists("analyze.demographics")) analyze.demographics <- readRDS(paste(analysis.dir, "demographics.Rds", sep="/"))
+read_rds(analysis.dir)
 ```
 
 ## FlexTable
@@ -21,6 +20,7 @@ if (!exists("analyze.demographics")) analyze.demographics <- readRDS(paste(analy
 # cat(result_table("html", analyze.demograph, "title"))
 res <- result_table("table", analyze.demographics, "title")
 res
+pander(res)
 ```
 
 ## TableOne

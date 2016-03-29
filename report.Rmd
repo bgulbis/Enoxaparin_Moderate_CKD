@@ -1,0 +1,54 @@
+---
+title: "Bleeding Events with Enxoaparin in Moderate Renal Dysfunction"
+author: "Stephanie Kuhl, Brian Gulbis, Andrea C. Hall"
+date: "March 24, 2016"
+output: pdf_document
+subtitle: Detailed Results
+---
+
+```{r}
+source("0-library.R")
+library(pander)
+panderOptions("table.split.table", Inf)
+read_rds(analysis.dir)
+```
+
+## Demographics
+```{r}
+res <- result_table("table", analyze.demographics)
+pander(res)
+```
+
+### Summary
+```{r}
+result_table("cat", analyze.demographics)
+result_table("cont", analyze.demographics)
+```
+
+
+## Past Medical History
+```{r}
+res <- result_table("table", analyze.diagnosis)
+pander(res)
+```
+
+## Home Medication
+```{r}
+res <- result_table("table", analyze.home.meds)
+pander(res)
+```
+
+## Bleeding Events
+```{r}
+cram <- c("drop.after.procedure", "prbc.after.procedure", "prbc.after.drop")
+res <- result_table("table", analyze.bleed, cram = cram)
+pander(res)
+```
+
+## New Thrombosis
+```{r}
+cram <- c("stroke.new", "pe.new")
+res <- result_table("table", analyze.thrombosis, cram = cram)
+pander(res)
+```
+
