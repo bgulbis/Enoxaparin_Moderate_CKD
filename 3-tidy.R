@@ -6,29 +6,19 @@ source("0-library.R")
 
 # raw data ----
 
-raw.blood <- read_edw_data(data.dir, file.name = "blood", 
-                           check.distinct = TRUE)
-raw.demograph <- read_edw_data(data.dir, file.name = "demographics", 
-                               check.distinct = TRUE)
-raw.diagnosis <- read_edw_data(data.dir, file.name = "diagnosis", 
-                               check.distinct = TRUE)
-raw.home.meds <- read_edw_data(data.dir, file.name = "home_meds", 
-                               check.distinct = TRUE)
-raw.labs <- read_edw_data(data.dir, file.name = "labs", check.distinct = TRUE)
-raw.measures <- read_edw_data(data.dir, file.name = "measures", 
-                              check.distinct = TRUE)
-raw.meds.cont <- read_edw_data(data.dir, file.name = "meds_continuous")
-raw.meds.sched <- read_edw_data(data.dir, file.name = "meds_sched", 
-                                check.distinct = TRUE)
-raw.procedures <- read_edw_data(data.dir, file.name = "procedures", 
-                                check.distinct = TRUE)
-raw.radiology <- read_edw_data(data.dir, file.name = "radiology", 
-                               check.distinct = TRUE)
+raw.blood <- read_edw_data(data.dir, file.name = "blood")
+raw.demograph <- read_edw_data(data.dir, file.name = "demographics")
+raw.diagnosis <- read_edw_data(data.dir, file.name = "diagnosis")
+raw.home.meds <- read_edw_data(data.dir, file.name = "home_meds")
+raw.labs <- read_edw_data(data.dir, file.name = "labs")
+raw.measures <- read_edw_data(data.dir, file.name = "measures")
+raw.meds.cont <- read_edw_data(data.dir, file.name = "meds_continuous", check.distinct = FALSE)
+raw.meds.sched <- read_edw_data(data.dir, file.name = "meds_sched")
+raw.procedures <- read_edw_data(data.dir, file.name = "procedures")
+raw.radiology <- read_edw_data(data.dir, file.name = "radiology")
 raw.surgeries <- read_edw_data(data.dir, file.name = "surgeries")
-raw.enox.freq <- read_edw_data(data.dir, file.name = "meds_sched_enox", 
-                               type = "meds_sched_freq")
-raw.probs <- read_edw_data(data.dir, file.name = "problems", 
-                           check.distinct = TRUE)
+raw.enox.freq <- read_edw_data(data.dir, file.name = "meds_sched_enox", type = "meds_sched_freq")
+raw.probs <- read_edw_data(data.dir, file.name = "problems")
 
 if (!exists("data.patients")) {
     data.patients <- readRDS("included_patients.Rds")

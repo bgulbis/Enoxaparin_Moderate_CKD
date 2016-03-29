@@ -74,21 +74,16 @@ data.bleed <- data.diagnosis %>%
 # analysis ----
 # make data frames to use for analysis
 analyze.demographics <- select(data.demograph, -person.id)
-saveRDS(analyze.demographics, paste(analysis.dir, "demographics.Rds", sep="/"))
-
 analyze.bleed <- left_join(data.groups, data.bleed, by = "pie.id") 
-saveRDS(analyze.bleed, paste(analysis.dir, "bleed.Rds", sep="/"))
-
 analyze.diagnosis <- left_join(data.groups, data.diagnosis, by = "pie.id") %>%
     mutate_each(funs(ifelse(is.na(.), FALSE, .)), -pie.id, -group)
-saveRDS(analyze.diagnosis, paste(analysis.dir, "diagnosis.Rds", sep="/"))
 
 analyze.home.meds <- left_join(data.groups, data.home.meds, by = "pie.id") %>%
     mutate_each(funs(ifelse(is.na(.), FALSE, .)), -pie.id, -group)
 names(analyze.home.meds) <- make.names(names(analyze.home.meds))
-saveRDS(analyze.home.meds, paste(analysis.dir, "home_meds.Rds", sep="/"))
 
 analyze.thrombosis <- left_join(data.groups, data.manual.thrmb, by = "pie.id") %>%
     mutate(thrombus = ifelse(is.na(thrombus), FALSE, thrombus)) %>%
     select(-rad.datetime)
-saveRDS(analyze.diagnosis, paste(analysis.dir, "thrombosis.Rds", sep="/"))
+
+save_rds(analysis.dir, "analyze")

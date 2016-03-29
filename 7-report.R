@@ -2,11 +2,7 @@
 
 source("0-library.R")
 
-if (!exists("analyze.demographics")) analyze.demographics <- readRDS(paste(analysis.dir, "demographics.Rds", sep = "/"))
-if (!exists("analyze.diagnosis")) analyze.diagnosis <- readRDS(paste(analysis.dir, "diagnosis.Rds", sep = "/"))
-if (!exists("analyze.home.meds")) analyze.home.meds <- readRDS(paste(analysis.dir, "home_meds.Rds", sep = "/"))
-if (!exists("analyze.bleed")) analyze.bleed <- readRDS(paste(analysis.dir, "bleed.Rds", sep = "/"))
-if (!exists("analyze.thrombosis")) analyze.thrombosis <- readRDS(paste(analysis.dir, "thrombosis.Rds", sep = "/"))
+read_rds(analysis.dir)
 
 # create docx object with project title and authors
 project <- "Bleeding Events with Enoxaparin in Patients with Moderate Renal Dysfunction"
