@@ -68,15 +68,19 @@ data.bleed <- data.diagnosis %>%
            tmp.prbc.proc = as.numeric(difftime(tmp.prbc.date, proc.date, units = "days")),
            prbc.after.procedure = ifelse(tmp.prbc.proc >= 0 & tmp.prbc.proc <= 1, TRUE, FALSE),
            tmp.drop.prbc = as.numeric(difftime(blood.datetime, drop.datetime, units = "days")),
-           prbc.after.drop = ifelse(tmp.drop.prbc >= 0 & tmp.drop.prbc <= 1, TRUE, FALSE)) %>%
+           prbc.after.drop = ifelse(tmp.drop.prbc >= 0 & tmp.drop.prbc <= 1, TRUE, FALSE),
+           non.proc.prbc = ifelse(prbc == TRUE, 
+                                  ifelse(is.na(prbc.after.procedure) | 
+                                             prbc.after.procedure == FALSE, 
+                                         TRUE, FALSE), 
+                                  NA)) %>%
     select(-starts_with("bleed"), -contains("tmp"), -contains("date"), -(dose.count:freq))
 
 # analysis ----
 # make data frames to use for analysis
 analyze.demographics <- select(data.demograph, -person.id)
 analyze.bleed <- left_join(data.groups, data.bleed, by = "pie.id") 
-analyze.diagnosis <- left_join(data.groups, data.diagnosis, by = "pie.id") %>%
-    mutate_each(funs(ifelse(is.na(.), FALSE, .)), -pie.id, -group)
+analyze.diagnosis <- data.diagnosis
 
 analyze.home.meds <- left_join(data.groups, data.home.meds, by = "pie.id") %>%
     mutate_each(funs(ifelse(is.na(.), FALSE, .)), -pie.id, -group)

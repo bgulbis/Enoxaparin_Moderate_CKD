@@ -40,8 +40,8 @@ data.groups <- select(data.demograph, pie.id, group)
 # get desired diagnosis codes
 ref.pmh.codes <- read_data(lookup.dir, "pmh_lookup.csv")
 # use standard tidying function
-data.diagnosis <- tidy_data("diagnosis", ref.data = ref.pmh.codes, 
-                            pt.data = raw.diagnosis, patients = data.groups) 
+data.diagnosis <- tidy_data(raw.diagnosis, "diagnosis", ref.data = ref.pmh.codes, 
+                            patients = data.groups) 
 
 saveRDS(data.diagnosis, "Preliminary Analysis/diagnosis.Rds")
 
@@ -49,8 +49,8 @@ saveRDS(data.diagnosis, "Preliminary Analysis/diagnosis.Rds")
 # get desired medication classes
 ref.home.meds <- read_data(lookup.dir, "home_meds_lookup.csv")
 # use standard tidying function
-data.home.meds <- tidy_data("meds_outpt", ref.data = ref.home.meds, 
-                            pt.data = raw.home.meds, patients = data.groups)
+data.home.meds <- tidy_data(raw.home.meds, "meds_outpt", ref.data = ref.home.meds, 
+                            patients = data.groups)
 
 # hospital meds ----
 
@@ -66,17 +66,17 @@ data.enox.courses <- filter(tmp.enox.courses, pie.id %in% incl.pts) %>%
 # get continuous medications
 ref.meds.confound <- read_data(lookup.dir, "meds_confound")
 # use standard tidying function
-tmp.meds.cont <- tidy_data("meds_cont", ref.data = ref.meds.confound, 
-                           cont.data = raw.meds.cont, sched.data = raw.meds.sched, 
-                           patients = data.demograph)
+tmp.meds.cont <- tidy_data(raw.meds.cont, "meds_cont", 
+                           ref.data = ref.meds.confound, 
+                           sched.data = raw.meds.sched)
 # get running times
 tmp.meds.cont <- calc_runtime(tmp.meds.cont)
 # summarize data
 data.meds.cont <- summarize_cont_meds(tmp.meds.cont)
 
 # use standard tidying function for scheduled medications
-tmp.meds.sched <- tidy_data("meds_sched", ref.data = ref.meds.confound, 
-                           sched.data = raw.meds.sched, patients = data.demograph)
+tmp.meds.sched <- tidy_data(raw.meds.sched, "meds_sched", 
+                            ref.data = ref.meds.confound)
 
 # diagnostic scans ----
 # get list of FINs for manual lookup

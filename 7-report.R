@@ -2,7 +2,7 @@
 
 source("0-library.R")
 
-read_rds(analysis.dir)
+get_rds(analysis.dir)
 
 # create docx object with project title and authors
 project <- "Bleeding Events with Enoxaparin in Patients with Moderate Renal Dysfunction"
@@ -14,7 +14,7 @@ mydoc <- result_docx(project, authors)
 mydoc <- result_table(mydoc, analyze.demographics, "Demographics")
 mydoc <- result_table(mydoc, analyze.diagnosis, "Past Medical History")
 mydoc <- result_table(mydoc, analyze.home.meds, "Home Medications")
-cram <- c("drop.after.procedure", "prbc.after.procedure", "prbc.after.drop")
+cram <- c("drop.after.procedure", "prbc.after.procedure", "prbc.after.drop", "non.proc.prbc")
 mydoc <- result_table(mydoc, analyze.bleed, "Bleeding Events", cram = cram)
 cram <- c("stroke.new", "pe.new")
 mydoc <- result_table(mydoc, analyze.thrombosis, "New Thrombosis", cram = cram)
