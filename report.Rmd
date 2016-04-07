@@ -10,7 +10,7 @@ subtitle: Detailed Results
 source("0-library.R")
 library(pander)
 panderOptions("table.split.table", Inf)
-read_rds(analysis.dir)
+get_rds(analysis.dir)
 ```
 
 ## Demographics
